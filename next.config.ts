@@ -1,7 +1,12 @@
-import type { NextConfig } from "next";
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // This is the line you need to add
+  output: 'export',
 
-const nextConfig: NextConfig = {
-  /* config options here */
+  // This is recommended for static exports as the default image optimization won't work
+  images: {
+    unoptimized: true,
+  },
 };
 
 export default nextConfig;

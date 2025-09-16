@@ -1,0 +1,61 @@
+/* src/app/global.module.css */
+.container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1rem;
+  font-family: sans-serif;
+}
+
+.form,
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.formGroup input,
+.formGroup textarea {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.button,
+.deleteButton {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #0070f3;
+  color: white;
+}
+
+.button:disabled {
+  background-color: #ccc;
+}
+
+.deleteButton {
+  background-color: #f44336;
+}
+
+.error {
+  color: red;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.table th,
+.table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.table th {
+  background-color: #f2f2f2;
+}

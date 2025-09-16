@@ -1,95 +1,83 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+// src/app/page.tsx
+'use client';
 
-export default function Home() {
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import styles from './global.module.css';
+
+// Create a reusable Axios instance
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  withCredentials: true, // This is crucial for sending cookies
+});
+
+export default function LoginPage() {
+  const [email, setEmail] = useState('admin@example.com');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // This useEffect hook runs once when the component loads
+  useEffect(() => {
+    // Make the initial request to get the CSRF cookie
+    apiClient.get('/sanctum/csrf-cookie').catch(err => {
+      console.error('CSRF cookie fetch failed:', err);
+      setError('Could not connect to the server. Is it running?');
+    });
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      // Now, make the login request. Axios will automatically handle the CSRF token.
+      await apiClient.post('/api/login', {
+        email,
+        password,
+      });
+
+      // If login is successful, redirect to the dashboard
+      window.location.href = '/dashboard';
+
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Login failed. Please check your credentials.';
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+    <div className={styles.container}>
+      <h1>Admin Login</h1>
+      <form onSubmit={handleSubmit} className={styles.form}>
+        <div className={styles.formGroup}>
+          <label htmlFor="email">Email:</label>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
         </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+        <div className={styles.formGroup}>
+          <label htmlFor="password">Password:</label>
+          <input
+            type="password"
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
           />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        </div>
+        <button type="submit" disabled={loading} className={styles.button}>
+          {loading ? 'Logging in...' : 'Login'}
+        </button>
+        {error && <p className={styles.error}>{error}</p>}
+      </form>
     </div>
   );
 }
