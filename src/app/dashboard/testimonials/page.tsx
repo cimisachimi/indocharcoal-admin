@@ -13,43 +13,62 @@ export default function TestimonialsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
   useEffect(() => {
     const fetchTestimonials = async () => {
       try {
-        const response = await apiClient.get<Testimonial[]>('/api/testimonials');
+        const response = await apiClient.get<Testimonial[]>('/api/testimonials', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setTestimonials(response.data);
       } catch (err: any) {
-        setError('Gagal mengambil data testimonials. Apakah Anda sudah login?');
+        if (err.response?.status === 401) {
+          setError('Unauthorized. Please login again.');
+        } else {
+          setError('Failed to fetch testimonials.');
+        }
       } finally {
         setLoading(false);
       }
     };
-    fetchTestimonials();
-  }, []);
+    if (token) fetchTestimonials();
+  }, [token]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
     try {
-      const response = await apiClient.post<Testimonial>('/api/testimonials', {
-        author_name: authorName,
-        quote,
-      });
+      const response = await apiClient.post<Testimonial>(
+        '/api/testimonials',
+        { author_name: authorName, quote },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setTestimonials([response.data, ...testimonials]);
       setAuthorName('');
       setQuote('');
     } catch (err: any) {
-      setError('Gagal membuat testimonial.');
+      if (err.response?.status === 401) {
+        setError('Unauthorized. Please login again.');
+      } else {
+        setError('Failed to create testimonial.');
+      }
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Apakah Anda yakin?')) return;
+    if (!confirm('Are you sure?')) return;
     try {
-      await apiClient.delete(`/api/testimonials/${id}`);
+      await apiClient.delete(`/api/testimonials/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setTestimonials(testimonials.filter((t) => t.id !== id));
     } catch (err: any) {
-      setError('Gagal menghapus testimonial.');
+      if (err.response?.status === 401) {
+        setError('Unauthorized. Please login again.');
+      } else {
+        setError('Failed to delete testimonial.');
+      }
     }
   };
 
@@ -62,13 +81,26 @@ export default function TestimonialsPage() {
         <h3>Add New Testimonial</h3>
         <div className={styles.formGroup}>
           <label htmlFor="authorName">Author Name</label>
-          <input id="authorName" type="text" value={authorName} onChange={(e) => setAuthorName(e.target.value)} required />
+          <input
+            id="authorName"
+            type="text"
+            value={authorName}
+            onChange={(e) => setAuthorName(e.target.value)}
+            required
+          />
         </div>
         <div className={styles.formGroup}>
           <label htmlFor="quote">Quote</label>
-          <textarea id="quote" value={quote} onChange={(e) => setQuote(e.target.value)} required />
+          <textarea
+            id="quote"
+            value={quote}
+            onChange={(e) => setQuote(e.target.value)}
+            required
+          />
         </div>
-        <button type="submit" className={styles.button}>Add Testimonial</button>
+        <button type="submit" className={styles.button}>
+          Add Testimonial
+        </button>
       </form>
       {error && <p className={styles.error}>{error}</p>}
       <h2>Existing Testimonials</h2>
@@ -85,7 +117,14 @@ export default function TestimonialsPage() {
             <tr key={testimonial.id}>
               <td>{testimonial.author_name}</td>
               <td>{testimonial.quote}</td>
-              <td><button onClick={() => handleDelete(testimonial.id)} className={styles.deleteButton}>Delete</button></td>
+              <td>
+                <button
+                  onClick={() => handleDelete(testimonial.id)}
+                  className={styles.deleteButton}
+                >
+                  Delete
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
