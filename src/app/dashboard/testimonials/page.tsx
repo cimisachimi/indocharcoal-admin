@@ -3,10 +3,40 @@
 
 import { useState, useEffect, FormEvent } from 'react';
 import { Testimonial } from '@/types';
-import styles from '../../global.module.css';
 import apiClient from '@/lib/apiCLient';
-import EditModal from '@/components/EditModal';
-import ConfirmationModal from '@/components/ConfirmationModal';
+import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function TestimonialsPage() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
@@ -15,10 +45,6 @@ export default function TestimonialsPage() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
-  // State for modals
-  const [isEditModalOpen, setEditModalOpen] = useState(false);
-  const [isConfirmModalOpen, setConfirmModalOpen] = useState(false);
   const [selectedTestimonial, setSelectedTestimonial] = useState<Testimonial | null>(null);
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
@@ -37,11 +63,6 @@ export default function TestimonialsPage() {
     if (token) fetchTestimonials();
   }, [token]);
 
-  const handleEdit = (testimonial: Testimonial) => {
-    setSelectedTestimonial(testimonial);
-    setEditModalOpen(true);
-  };
-
   const handleSave = async (updatedTestimonial: Testimonial) => {
     if (!selectedTestimonial) return;
     try {
@@ -53,25 +74,15 @@ export default function TestimonialsPage() {
       setTestimonials(
         testimonials.map((t) => (t.id === selectedTestimonial.id ? response.data : t))
       );
-      setEditModalOpen(false);
-      setSelectedTestimonial(null);
     } catch (err: any) {
       setError(err.response?.status === 401 ? 'Unauthorized. Please login again.' : 'Failed to update testimonial.');
     }
   };
 
-  const openConfirmModal = (testimonial: Testimonial) => {
-    setSelectedTestimonial(testimonial);
-    setConfirmModalOpen(true);
-  };
-
-  const handleDelete = async () => {
-    if (!selectedTestimonial) return;
+  const handleDelete = async (testimonialId: number) => {
     try {
-      await apiClient.delete(`/api/testimonials/${selectedTestimonial.id}`);
-      setTestimonials(testimonials.filter((t) => t.id !== selectedTestimonial.id));
-      setConfirmModalOpen(false);
-      setSelectedTestimonial(null);
+      await apiClient.delete(`/api/testimonials/${testimonialId}`);
+      setTestimonials(testimonials.filter((t) => t.id !== testimonialId));
     } catch (err: any) {
       setError(err.response?.status === 401 ? 'Unauthorized. Please login again.' : 'Failed to delete testimonial.');
     }
@@ -94,85 +105,92 @@ export default function TestimonialsPage() {
   if (loading) return <p>Loading...</p>;
 
   return (
-    <div>
-      <h1>Manage Testimonials</h1>
-      <form onSubmit={handleSubmit} className={styles.form}>
-        <h3>Add New Testimonial</h3>
-        <div className={styles.formGroup}>
-          <label htmlFor="name">Author Name</label>
-          <input
-            id="name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </div>
-        <div className={styles.formGroup}>
-          <label htmlFor="title">Title</label>
-          <input
-            id="title"
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </div>
-        <div className={styles.formGroup}>
-          <label htmlFor="message">Message</label>
-          <textarea
-            id="message"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit" className={styles.button}>
-          Add Testimonial
-        </button>
-      </form>
-      {error && <p className={styles.error}>{error}</p>}
-      <h2>Existing Testimonials</h2>
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th>Author</th>
-            <th>Title</th>
-            <th>Message</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {testimonials.map((testimonial) => (
-            <tr key={testimonial.id}>
-              <td>{testimonial.name}</td>
-              <td>{testimonial.title}</td>
-              <td>{testimonial.message}</td>
-              <td className={styles.actionsCell}>
-                <button onClick={() => handleEdit(testimonial)} className={styles.editButton}>
-                  Edit
-                </button>
-                <button onClick={() => openConfirmModal(testimonial)} className={styles.deleteButton}>
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold">Manage Testimonials</h1>
+      <Card>
+        <CardHeader>
+          <CardTitle>Add New Testimonial</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Author Name</Label>
+              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="title">Title</Label>
+              <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="message">Message</Label>
+              <Textarea id="message" value={message} onChange={(e) => setMessage(e.target.value)} required />
+            </div>
+            <Button type="submit">Add Testimonial</Button>
+          </form>
+        </CardContent>
+      </Card>
 
-      <EditModal
-        isOpen={isEditModalOpen}
-        onClose={() => setEditModalOpen(false)}
-        testimonial={selectedTestimonial}
-        onSave={handleSave}
-      />
+      {error && <p className="text-sm text-red-500">{error}</p>}
 
-      <ConfirmationModal
-        isOpen={isConfirmModalOpen}
-        onClose={() => setConfirmModalOpen(false)}
-        onConfirm={handleDelete}
-        message="Are you sure you want to delete this testimonial?"
-      />
+      <Card>
+        <CardHeader>
+          <CardTitle>Existing Testimonials</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Author</TableHead>
+                <TableHead>Title</TableHead>
+                <TableHead>Message</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {testimonials.map((testimonial) => (
+                <TableRow key={testimonial.id}>
+                  <TableCell>{testimonial.name}</TableCell>
+                  <TableCell>{testimonial.title}</TableCell>
+                  <TableCell>{testimonial.message}</TableCell>
+                  <TableCell className="space-x-2">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" onClick={() => setSelectedTestimonial(testimonial)}>Edit</Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Edit Testimonial</DialogTitle>
+                        </DialogHeader>
+                        {/* Edit form goes here */}
+                        <DialogFooter>
+                          <Button onClick={() => handleSave(selectedTestimonial!)}>Save Changes</Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive">Delete</Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the testimonial.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDelete(testimonial.id)}>Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }

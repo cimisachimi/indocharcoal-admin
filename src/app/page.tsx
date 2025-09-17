@@ -2,14 +2,25 @@
 'use client';
 
 import { useState } from 'react';
-import apiClient from '../lib/apiCLient'; // Impor apiClient
-import styles from './global.module.css';
+import apiClient from '../lib/apiCLient';
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function LoginPage() {
   const [email, setEmail] = useState('admin@example.com');
-  const [password, setPassword] = useState('Indocharsupply123'); // Ganti dengan password Anda
+  const [password, setPassword] = useState('Indocharsupply123');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -17,11 +28,7 @@ export default function LoginPage() {
 
     try {
       const res = await apiClient.post('/api/login', { email, password });
-
-      // Save token to localStorage
       localStorage.setItem('token', res.data.access_token);
-
-      // Redirect
       window.location.href = '/dashboard';
     } catch (err: any) {
       console.error("Login error:", {
@@ -33,40 +40,52 @@ export default function LoginPage() {
         err.response?.data?.message ||
         `Login gagal (status: ${err.response?.status})`;
       setError(errorMessage);
+    } finally {
+      setLoading(false);
     }
-
   };
 
-
   return (
-    <div className={styles.container}>
-      <h1>Admin Login</h1>
-      <form onSubmit={handleSubmit} className={styles.form}>
-        <div className={styles.formGroup}>
-          <label htmlFor="email">Email:</label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div className={styles.formGroup}>
-          <label htmlFor="password">Password:</label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit" disabled={loading} className={styles.button}>
-          {loading ? 'Logging in...' : 'Login'}
-        </button>
-        {error && <p className={styles.error}>{error}</p>}
-      </form>
+    <div className="flex items-center justify-center min-h-screen">
+      <Card className="w-full max-w-sm">
+        <CardHeader>
+          <CardTitle className="text-2xl">Admin Login</CardTitle>
+          <CardDescription>
+            Enter your email below to login to your account.
+          </CardDescription>
+        </CardHeader>
+        <form onSubmit={handleSubmit}>
+          <CardContent className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="m@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            {error && <p className="text-sm text-red-500">{error}</p>}
+          </CardContent>
+          <CardFooter>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Logging in...' : 'Login'}
+            </Button>
+          </CardFooter>
+        </form>
+      </Card>
     </div>
   );
 }

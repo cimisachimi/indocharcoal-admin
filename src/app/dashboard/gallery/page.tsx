@@ -3,8 +3,11 @@
 
 import { useState, useEffect, FormEvent } from 'react';
 import { GalleryImage } from '@/types';
-import styles from '../../global.module.css';
 import apiClient from '@/lib/apiCLient';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -55,7 +58,6 @@ export default function GalleryPage() {
       setImages([response.data, ...images]);
       setTitle('');
       setImageFile(null);
-      // Clear file input
       const fileInput = document.getElementById('image') as HTMLInputElement;
       if (fileInput) {
         fileInput.value = '';
@@ -86,49 +88,59 @@ export default function GalleryPage() {
   if (loading) return <p>Loading...</p>;
 
   return (
-    <div>
-      <h1>Manage Gallery</h1>
-      <form onSubmit={handleSubmit} className={styles.form}>
-        <h3>Upload New Image</h3>
-        <div className={styles.formGroup}>
-          <label htmlFor="title">Image Title (optional)</label>
-          <input
-            id="title"
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </div>
-        <div className={styles.formGroup}>
-          <label htmlFor="image">Image File</label>
-          <input
-            id="image"
-            type="file"
-            onChange={(e) => setImageFile(e.target.files ? e.target.files[0] : null)}
-            required
-          />
-        </div>
-        <button type="submit" className={styles.button}>
-          Upload Image
-        </button>
-      </form>
-      {error && <p className={styles.error}>{error}</p>}
-      <h2>Existing Images</h2>
-      <div className={styles.galleryGrid}>
-        {images.map((image) => (
-          <div key={image.id} className={styles.galleryItem}>
-            <img src={`${API_URL}/storage/${image.image_path}`} alt={image.title} />
-            <div className={styles.galleryItemCaption}>
-              <p>{image.title}</p>
-              <button
-                onClick={() => handleDelete(image.id)}
-                className={styles.deleteButton}
-              >
-                Delete
-              </button>
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold">Manage Gallery</h1>
+      <Card>
+        <CardHeader>
+          <CardTitle>Upload New Image</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">Image Title (optional)</Label>
+              <Input
+                id="title"
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
             </div>
-          </div>
-        ))}
+            <div className="space-y-2">
+              <Label htmlFor="image">Image File</Label>
+              <Input
+                id="image"
+                type="file"
+                onChange={(e) => setImageFile(e.target.files ? e.target.files[0] : null)}
+                required
+              />
+            </div>
+            <Button type="submit">Upload Image</Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      {error && <p className="text-sm text-red-500">{error}</p>}
+
+      <div>
+        <h2 className="text-xl font-bold mb-4">Existing Images</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {images.map((image) => (
+            <div key={image.id} className="relative group">
+              <img src={`${API_URL}/storage/${image.image_path}`} alt={image.title} className="rounded-lg object-cover w-full h-full" />
+              <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 p-2 text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                <p>{image.title}</p>
+                <Button
+                  onClick={() => handleDelete(image.id)}
+                  variant="destructive"
+                  size="sm"
+                  className="mt-1"
+                >
+                  Delete
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
