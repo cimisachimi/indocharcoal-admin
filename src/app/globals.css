@@ -1,19 +1,53 @@
+/* src/app/globals.css */
+
+/* 1. THEME & COLOR VARIABLES */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  --primary-accent: #0070f3;
+  --danger-accent: #f44336;
+
+  --button-primary-hover: #383838;
+  --button-secondary-hover: #f2f2f2;
+
+  --border-color: #ddd;
+  --table-header-bg: #f2f2f2;
+
+  --gray-rgb: 0, 0, 0;
+  --gray-alpha-100: rgba(var(--gray-rgb), 0.05);
+  --gray-alpha-200: rgba(var(--gray-rgb), 0.08);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+
+    --button-primary-hover: #ccc;
+    --button-secondary-hover: #1a1a1a;
+
+    --border-color: #555;
+    --table-header-bg: #222;
+
+    --gray-rgb: 255, 255, 255;
+    --gray-alpha-100: rgba(var(--gray-rgb), 0.06);
+    --gray-alpha-200: rgba(var(--gray-rgb), 0.145);
   }
+}
+
+/* 2. GLOBAL RESETS & BASE STYLES */
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 
 html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
+  color-scheme: light dark;
 }
 
 body {
@@ -24,19 +58,23 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
 a {
   color: inherit;
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+/* 3. BASE FORM & ELEMENT STYLES */
+input,
+textarea {
+  background-color: var(--background);
+  color: var(--foreground);
+  border: 1px solid var(--border-color);
+  padding: 8px;
+  border-radius: 4px;
+}
+
+h1,
+h2,
+h3 {
+  margin-bottom: 1rem;
 }

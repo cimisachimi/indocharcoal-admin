@@ -1,30 +1,13 @@
+/* src/app/page.module.css */
+
 .page {
-  --gray-rgb: 0, 0, 0;
-  --gray-alpha-200: rgba(var(--gray-rgb), 0.08);
-  --gray-alpha-100: rgba(var(--gray-rgb), 0.05);
-
-  --button-primary-hover: #383838;
-  --button-secondary-hover: #f2f2f2;
-
   display: grid;
-  grid-template-rows: 20px 1fr 20px;
+  grid-template-rows: auto 1fr auto;
   align-items: center;
   justify-items: center;
   min-height: 100svh;
   padding: 80px;
   gap: 64px;
-  font-family: var(--font-geist-sans);
-}
-
-@media (prefers-color-scheme: dark) {
-  .page {
-    --gray-rgb: 255, 255, 255;
-    --gray-alpha-200: rgba(var(--gray-rgb), 0.145);
-    --gray-alpha-100: rgba(var(--gray-rgb), 0.06);
-
-    --button-primary-hover: #ccc;
-    --button-secondary-hover: #1a1a1a;
-  }
 }
 
 .main {
@@ -36,6 +19,7 @@
 
 .main ol {
   font-family: var(--font-geist-mono);
+  /* Make sure this font is loaded in layout.tsx */
   padding-left: 0;
   margin: 0;
   font-size: 14px;
@@ -62,21 +46,16 @@
 }
 
 .ctas a {
-  appearance: none;
   border-radius: 128px;
   height: 48px;
   padding: 0 20px;
   border: 1px solid transparent;
-  transition:
-    background 0.2s,
-    color 0.2s,
-    border-color 0.2s;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 16px;
-  line-height: 20px;
   font-weight: 500;
 }
 
@@ -103,20 +82,24 @@ a.secondary {
   gap: 8px;
 }
 
-.footer img {
-  flex-shrink: 0;
+.logo {
+  filter: invert(0);
 }
 
-/* Enable hover only on non-touch devices */
+@media (prefers-color-scheme: dark) {
+  .logo {
+    filter: invert(1);
+  }
+}
+
+/* Hover effects */
 @media (hover: hover) and (pointer: fine) {
   a.primary:hover {
     background: var(--button-primary-hover);
-    border-color: transparent;
   }
 
   a.secondary:hover {
     background: var(--button-secondary-hover);
-    border-color: transparent;
   }
 
   .footer a:hover {
@@ -125,6 +108,7 @@ a.secondary {
   }
 }
 
+/* Mobile responsive styles */
 @media (max-width: 600px) {
   .page {
     padding: 32px;
@@ -157,11 +141,5 @@ a.secondary {
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  .logo {
-    filter: invert();
   }
 }

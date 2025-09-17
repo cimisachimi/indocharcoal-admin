@@ -2,21 +2,18 @@
 'use client';
 
 import { useEffect } from 'react';
+import apiClient from '@/lib/apiCLient';
 
 export default function LogoutPage() {
   useEffect(() => {
     const logout = async () => {
       try {
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/logout`, {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-          },
-        });
+        await apiClient.post('/api/logout');
       } catch (error) {
         console.error("Logout failed", error);
       } finally {
-        // Always redirect to login page
+        // Always remove token and redirect to login page
+        localStorage.removeItem('token');
         window.location.href = '/';
       }
     };

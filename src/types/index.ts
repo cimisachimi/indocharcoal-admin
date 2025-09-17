@@ -2,8 +2,9 @@
 
 export interface Testimonial {
   id: number;
-  author_name: string;
-  quote: string;
+  name: string;
+  title: string;
+  message: string;
   created_at: string;
   updated_at: string;
 }
@@ -11,7 +12,6 @@ export interface Testimonial {
 export interface GalleryImage {
   id: number;
   title: string;
-  alt_text: string;
   image_path: string;
   created_at: string;
   updated_at: string;

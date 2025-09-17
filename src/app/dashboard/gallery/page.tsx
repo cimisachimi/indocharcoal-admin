@@ -6,27 +6,26 @@ import { GalleryImage } from '@/types';
 import styles from '../../global.module.css';
 import apiClient from '@/lib/apiCLient';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export default function GalleryPage() {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [title, setTitle] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
   useEffect(() => {
     const fetchImages = async () => {
       try {
-        const response = await apiClient.get<GalleryImage[]>('/api/gallery', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await apiClient.get<GalleryImage[]>('/api/galleries');
         setImages(response.data);
       } catch (err: any) {
         if (err.response?.status === 401) {
           setError('Unauthorized. Please login again.');
         } else {
-          setError('Failed to fetch gallery.');
+          setError('Failed to fetch images.');
         }
       } finally {
         setLoading(false);
@@ -38,7 +37,7 @@ export default function GalleryPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!imageFile) {
-      setError('Please select an image file.');
+      setError('Please select an image to upload.');
       return;
     }
     setError('');
@@ -48,16 +47,19 @@ export default function GalleryPage() {
     formData.append('image', imageFile);
 
     try {
-      const response = await apiClient.post<GalleryImage>('/api/gallery', formData, {
+      const response = await apiClient.post<GalleryImage>('/api/galleries', formData, {
         headers: {
-          Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
         },
       });
       setImages([response.data, ...images]);
       setTitle('');
       setImageFile(null);
-      (e.target as HTMLFormElement).reset();
+      // Clear file input
+      const fileInput = document.getElementById('image') as HTMLInputElement;
+      if (fileInput) {
+        fileInput.value = '';
+      }
     } catch (err: any) {
       if (err.response?.status === 401) {
         setError('Unauthorized. Please login again.');
@@ -70,9 +72,7 @@ export default function GalleryPage() {
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure?')) return;
     try {
-      await apiClient.delete(`/api/gallery/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await apiClient.delete(`/api/galleries/${id}`);
       setImages(images.filter((img) => img.id !== id));
     } catch (err: any) {
       if (err.response?.status === 401) {
@@ -91,13 +91,12 @@ export default function GalleryPage() {
       <form onSubmit={handleSubmit} className={styles.form}>
         <h3>Upload New Image</h3>
         <div className={styles.formGroup}>
-          <label htmlFor="title">Image Title</label>
+          <label htmlFor="title">Image Title (optional)</label>
           <input
             id="title"
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            required
           />
         </div>
         <div className={styles.formGroup}>
@@ -105,10 +104,7 @@ export default function GalleryPage() {
           <input
             id="image"
             type="file"
-            accept="image/png, image/jpeg"
-            onChange={(e) =>
-              e.target.files && setImageFile(e.target.files[0])
-            }
+            onChange={(e) => setImageFile(e.target.files ? e.target.files[0] : null)}
             required
           />
         </div>
@@ -118,37 +114,19 @@ export default function GalleryPage() {
       </form>
       {error && <p className={styles.error}>{error}</p>}
       <h2>Existing Images</h2>
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '1rem',
-          marginTop: '1rem',
-        }}
-      >
+      <div className={styles.galleryGrid}>
         {images.map((image) => (
-          <div
-            key={image.id}
-            style={{
-              border: '1px solid #ccc',
-              padding: '0.5rem',
-              borderRadius: '4px',
-            }}
-          >
-            <img
-              src={`${process.env.NEXT_PUBLIC_API_URL}/storage/${image.image_path}`}
-              alt={image.alt_text}
-              width={150}
-              height={150}
-              style={{ objectFit: 'cover' }}
-            />
-            <p>{image.title}</p>
-            <button
-              onClick={() => handleDelete(image.id)}
-              className={styles.deleteButton}
-            >
-              Delete
-            </button>
+          <div key={image.id} className={styles.galleryItem}>
+            <img src={`${API_URL}/storage/${image.image_path}`} alt={image.title} />
+            <div className={styles.galleryItemCaption}>
+              <p>{image.title}</p>
+              <button
+                onClick={() => handleDelete(image.id)}
+                className={styles.deleteButton}
+              >
+                Delete
+              </button>
+            </div>
           </div>
         ))}
       </div>
