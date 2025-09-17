@@ -1,30 +1,15 @@
 // src/app/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState } from 'react';
+import apiClient from '../lib/apiCLient'; // Impor apiClient
 import styles from './global.module.css';
-
-// Create a reusable Axios instance
-const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  withCredentials: true, // This is crucial for sending cookies
-});
 
 export default function LoginPage() {
   const [email, setEmail] = useState('admin@example.com');
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState('Indocharsupply123'); // Ganti dengan password Anda
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  // This useEffect hook runs once when the component loads
-  useEffect(() => {
-    // Make the initial request to get the CSRF cookie
-    apiClient.get('/sanctum/csrf-cookie').catch(err => {
-      console.error('CSRF cookie fetch failed:', err);
-      setError('Could not connect to the server. Is it running?');
-    });
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,17 +17,20 @@ export default function LoginPage() {
     setError('');
 
     try {
-      // Now, make the login request. Axios will automatically handle the CSRF token.
+      // Langkah 1: Minta CSRF cookie dari Sanctum
+      await apiClient.get('/sanctum/csrf-cookie');
+
+      // Langkah 2: Lakukan request login
       await apiClient.post('/api/login', {
         email,
         password,
       });
 
-      // If login is successful, redirect to the dashboard
+      // Jika berhasil, alihkan ke dasbor
       window.location.href = '/dashboard';
 
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Login failed. Please check your credentials.';
+      const errorMessage = err.response?.data?.message || 'Login gagal. Periksa kembali kredensial Anda.';
       setError(errorMessage);
     } finally {
       setLoading(false);
